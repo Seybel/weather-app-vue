@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" :class="typeof weather.main != 'undefined' && weather.main.temp > 16 ? 'warm' : ''">
     <main>
       <div class="search-box">
         <input type="text" 
@@ -8,25 +8,28 @@
         v-model="query"
         @keypress="fetchWeather">
       </div>
-
-      <div class="location-box">
-        <div class="location">
-          <h1>London</h1>
+      <div class="weather-wrap" v-if="typeof weather.main != 'undefined'">
+        <div class="location-box">
+          <div class="location">
+            <h1>{{ weather.name }}, {{ weather.sys.country}}</h1>
+          </div>
+          <div class="date">
+            <p>{{ getDate() }}</p>
+          </div>
         </div>
-        <div class="date">
-          <p>Friday 3 April 2020</p>
-        </div>
-      </div>
 
-      <div class="weather-box">
-        <div class="temp">25°c</div>
-        <div class="weather">Sunny</div>
+        <div class="weather-box">
+          <div class="temp">{{ Math.round(weather.main.temp) }}°c</div>
+          <div class="weather">{{ weather.weather[0].main}}</div>
+        </div>
       </div>
     </main>
   </div>
 </template>
 
 <script>
+import moment from 'moment';
+
 export default {
   name: 'App',
   data () {
@@ -35,6 +38,15 @@ export default {
       base_url: 'http://api.openweathermap.org/data/2.5/',
       query: '',
       weather: {}
+    }
+  },
+
+  watch: {
+    weather: {
+      immediate: true,
+      handler(json) {
+      this.weather = json;
+    }
     }
   },
 
@@ -48,8 +60,19 @@ export default {
         // pass the object as weather properties
         this.weather = await json;
       }
+    },
+
+    getDate() {
+      return moment().format('ddd Do MMMM YYYY')
     }
-  }
+  },
+
+  // mounted() {
+  //   // fire the fetchWeather method onkeypress enter 
+  //   var keyCode = (e) => e.key == 'Enter';
+  //   // trigger the method when vue app is mounted
+  //   this.fetchWeather(keyCode) 
+  // }
 }
 </script>
 
@@ -70,6 +93,10 @@ body {
   background-position: bottom;
   background-repeat: no-repeat;
   transition: 0.4s;
+}
+
+#app.warm {
+  background-image: url('./assets/warm-bg.jpg');
 }
 
 main {
